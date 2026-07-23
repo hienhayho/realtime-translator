@@ -1,7 +1,7 @@
 [project]
 name = "vi-en-translate-backend"
 version = "0.1.0"
-description = "Local VI->EN realtime translation backend (VAD + Gipformer ASR + Bonsai MLX translation)"
+description = "Local bilingual VI<->EN realtime translation backend (VAD + Gipformer/Whisper ASR + Qwen3.5 via llama-server)"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115",

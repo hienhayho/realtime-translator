@@ -4,8 +4,12 @@ import UniformTypeIdentifiers
 
 @main
 struct TranslateApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var store = SessionStore()
     @State private var coordinator: SessionCoordinator?
+    @State private var modelSelection = ModelSelection()
+    @State private var processManager = BackendProcessManager(backendDir: BackendProcessManager.resolveBackendDir())
+    @State private var sidebarSelection: SidebarDestination? = .translate
 
     init() {
         // Force a regular app (Dock icon, window, Cmd+Tab). SPM executable
@@ -17,14 +21,29 @@ struct TranslateApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView(onToggleMic: toggleMic, onChooseFile: chooseFile, onClear: clear)
-                .environment(store)
+            NavigationSplitView {
+                Sidebar(selection: $sidebarSelection)
+            } detail: {
+                switch sidebarSelection {
+                case .models:
+                    ModelsView(
+                        onBeforeModelSwitch: disconnectBeforeModelSwitch,
+                        onAfterModelSwitch: reconnectAfterModelSwitch
+                    )
+                case .translate, .none:
+                    ContentView(onToggleMic: toggleMic, onChooseFile: chooseFile, onClear: clear)
+                }
+            }
+            .environment(store)
+            .environment(processManager)
+            .environment(modelSelection)
+            .task {
+                appDelegate.processManager = processManager
+                _ = makeCoordinatorIfNeeded()
+                processManager.start(whisperTier: modelSelection.whisperTier, translationModel: modelSelection.translationModel)
+            }
         }
         .windowResizability(.contentSize)
-
-        Settings {
-            SettingsView()
-        }
     }
 
     private func makeCoordinatorIfNeeded() -> SessionCoordinator {
@@ -34,6 +53,20 @@ struct TranslateApp: App {
         let newCoordinator = SessionCoordinator(store: store, host: host, port: port == 0 ? 8000 : port)
         coordinator = newCoordinator
         return newCoordinator
+    }
+
+    /// Passed into ModelsView, called just before a model-switch restart —
+    /// disconnects the WS session cleanly so the receive loop's termination
+    /// isn't mistaken for an unexpected drop.
+    private func disconnectBeforeModelSwitch() {
+        makeCoordinatorIfNeeded().disconnectForPlannedRelaunch()
+    }
+
+    /// Passed into ModelsView, called after BackendProcessManager confirms
+    /// the relaunched process is healthy again — reconnects the WS session
+    /// deterministically (see SessionCoordinator's planned-relaunch path).
+    private func reconnectAfterModelSwitch() async {
+        await makeCoordinatorIfNeeded().reconnectAfterPlannedRelaunch()
     }
 
     private func toggleMic() {

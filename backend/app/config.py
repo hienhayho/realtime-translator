@@ -1,5 +1,6 @@
 """Central config: model paths, audio params, windowing. See BACKEND.md."""
 
+import os
 from pathlib import Path
 
 BACKEND_ROOT = Path(__file__).resolve().parent.parent
@@ -36,12 +37,18 @@ GIPFORMER_TOKENS = GIPFORMER_MODEL_DIR / "tokens.txt"
 GIPFORMER_NUM_THREADS = 2
 GIPFORMER_DECODING_METHOD = "greedy_search"  # or "modified_beam_search"
 
-# Whisper base.en ASR (sherpa-onnx offline whisper) — English
-# Filenames confirmed against HF repo csukuangfj/sherpa-onnx-whisper-base.en file listing.
-WHISPER_MODEL_DIR = BACKEND_ROOT / "models" / "whisper-base.en"
-WHISPER_ENCODER = WHISPER_MODEL_DIR / "base.en-encoder.int8.onnx"
-WHISPER_DECODER = WHISPER_MODEL_DIR / "base.en-decoder.int8.onnx"
-WHISPER_TOKENS = WHISPER_MODEL_DIR / "base.en-tokens.txt"
+# Whisper ASR (sherpa-onnx offline whisper) — English. Tier selectable via
+# WHISPER_TIER env var (tiny.en | base.en | medium.en), set by the Swift
+# app's BackendProcessManager when it spawns this process — see
+# macapp/Sources/Translate/Process/BackendProcessManager.swift. Falls back to
+# tiny.en (smallest/fastest) when unset, e.g. running uvicorn manually for
+# dev. Filenames confirmed against HF repo
+# csukuangfj/sherpa-onnx-whisper-{tier} file listings.
+WHISPER_TIER = os.environ.get("WHISPER_TIER", "tiny.en")
+WHISPER_MODEL_DIR = BACKEND_ROOT / "models" / f"whisper-{WHISPER_TIER}"
+WHISPER_ENCODER = WHISPER_MODEL_DIR / f"{WHISPER_TIER}-encoder.int8.onnx"
+WHISPER_DECODER = WHISPER_MODEL_DIR / f"{WHISPER_TIER}-decoder.int8.onnx"
+WHISPER_TOKENS = WHISPER_MODEL_DIR / f"{WHISPER_TIER}-tokens.txt"
 WHISPER_NUM_THREADS = 2
 
 # Translation LLM (llama-server, OpenAI-compatible HTTP). Currently Qwen3.5-9B

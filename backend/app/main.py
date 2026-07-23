@@ -41,6 +41,14 @@ async def lifespan(_: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
+@app.get("/health")
+async def health() -> dict[str, str]:
+    """Polled by the Swift app's BackendProcessManager. A 200 here means ASR
+    models already finished loading (they load eagerly at module import
+    time, before this route is even reachable)."""
+    return {"status": "ok"}
+
+
 def _pcm16_bytes_to_f32(data: bytes) -> np.ndarray:
     return np.frombuffer(data, dtype=np.int16).astype(np.float32) / 32768.0
 

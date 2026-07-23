@@ -1,0 +1,39 @@
+name: Translate
+options:
+  bundleIdPrefix: com.hienhayho
+  deploymentTarget:
+    macOS: "14.0"
+
+settings:
+  MACOSX_DEPLOYMENT_TARGET: "14.0"
+  SWIFT_VERSION: "5.10"
+  CODE_SIGN_STYLE: Automatic
+  CODE_SIGN_IDENTITY: "-"
+  DEVELOPMENT_TEAM: ""
+
+targets:
+  Translate:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Sources/Translate
+        excludes:
+          - Resources/Info.plist
+    info:
+      path: Sources/Translate/Resources/Info.plist
+      properties:
+        CFBundleName: Translate
+        CFBundleDisplayName: Translate
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        LSMinimumSystemVersion: "14.0"
+        NSMicrophoneUsageDescription: Used to capture your speech for realtime Vietnamese-to-English translation.
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.hienhayho.translate
+        PRODUCT_NAME: Translate
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        ENABLE_HARDENED_RUNTIME: NO
