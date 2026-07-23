@@ -15,8 +15,12 @@ REPO_URL="https://github.com/hienhayho/realtime-translator.git"
 INSTALL_DIR="$HOME/.translate-app"
 APP_NAME="Translate.app"
 
-log() { printf '\n=== %s ===\n' "$1"; }
-fail() { printf 'error: %s\n' "$1" >&2; exit 1; }
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+RESET='\033[0m'
+
+log() { printf "\n${GREEN}=== %s ===${RESET}\n" "$1"; }
+fail() { printf "${RED}error: %s${RESET}\n" "$1" >&2; exit 1; }
 
 # --- 1. Preflight ------------------------------------------------------
 log "Preflight checks"
