@@ -32,6 +32,20 @@ fi
 
 echo "OK"
 
+# Optional: huggingface_hub reads HF_TOKEN from the environment automatically
+# and uses it for higher rate limits / faster downloads (used later in step 5).
+# Not required — without one, downloads still work, just slower and
+# rate-limited (the "unauthenticated requests" warning huggingface_hub
+# prints is expected and harmless). Skip the prompt entirely if HF_TOKEN is
+# already set, or if stdin isn't a terminal (e.g. running non-interactively/
+# piped/CI). Asked up front so the rest of the install can run unattended.
+if [ -z "${HF_TOKEN:-}" ] && [ -t 0 ]; then
+    read -r -p "Hugging Face token (optional, speeds up downloads — press Enter to skip): " HF_TOKEN_INPUT
+    if [ -n "$HF_TOKEN_INPUT" ]; then
+        export HF_TOKEN="$HF_TOKEN_INPUT"
+    fi
+fi
+
 # --- 2. Clone / update ---------------------------------------------------
 log "Cloning/updating $INSTALL_DIR"
 
